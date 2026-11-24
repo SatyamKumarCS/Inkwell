@@ -1,6 +1,6 @@
 import { Collections, Paths } from '@inkwell/shared';
 
-import { orderBetween, type EditorBlockType } from '@/features/docs/blocks';
+import { orderBetween, previewText, type EditorBlockType } from '@/features/docs/blocks';
 import { addDays, createTask, createTaskList, isoDate } from '@/features/tasks/api';
 import { commitBatch, newDocId, serverTimestamp, type BatchOp } from '@/lib/db';
 
@@ -62,6 +62,9 @@ export async function seedSampleContent(uid: string, spaceId: string): Promise<v
         spaceId,
         ownerId: uid,
         title: doc.title,
+        preview: previewText(
+          doc.blocks.map(([type, text], i) => ({ id: String(i), type, text, checked: false, order: 'a0' })),
+        ),
         icon: doc.icon,
         sharedWith: [],
         linkSharing: 'off',

@@ -94,6 +94,7 @@ service cloud.firestore {
 
     function validDocFields(data) {
       return data.title is string && data.title.size() <= 500
+        && (!('preview' in data) || (data.preview is string && data.preview.size() <= 300))
         && (data.icon == null || data.icon is string)
         && data.deleted is bool
         && data.isDailyNote is bool;

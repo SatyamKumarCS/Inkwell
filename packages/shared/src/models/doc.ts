@@ -7,6 +7,8 @@ export type LinkSharing = z.infer<typeof linkSharingSchema>;
 export const docSchema = auditFieldsSchema.extend({
   spaceId: z.string(),
   title: z.string().max(500),
+  /** First lines of text, kept up to date by the editor so lists can show it without reading blocks. */
+  preview: z.string().max(300).optional(),
   icon: z.string().nullable(),
   cover: z.string().optional(),
   folderId: z.string().optional(),

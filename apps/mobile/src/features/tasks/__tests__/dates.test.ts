@@ -89,8 +89,10 @@ describe('filterTasks', () => {
     expect(ids(filterTasks(tasks, 'inbox', TODAY))).toEqual(['inbox', 'inbox-today', 'later']);
   });
 
-  it('today = scheduled today', () => {
-    expect(ids(filterTasks(tasks, 'today', TODAY))).toEqual(['inbox-today']);
+  it('today = scheduled today, plus open overdue tasks', () => {
+    expect(ids(filterTasks(tasks, 'today', TODAY))).toEqual(['inbox-today', 'work-past']);
+    const doneOverdue = task('done-past', { scheduledDate: '2026-11-20', done: true });
+    expect(ids(filterTasks([doneOverdue], 'today', TODAY))).toEqual([]);
   });
 
   it('upcoming = scheduled after today', () => {

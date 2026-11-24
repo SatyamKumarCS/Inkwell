@@ -247,6 +247,8 @@ describe('docs/{docId}', () => {
     await assertFails(update({ spaceId: 'space-bob' }));
     await assertFails(update({ title: 'x'.repeat(501) }));
     await assertFails(update({ deleted: 'yes' }));
+    await assertFails(update({ preview: 'x'.repeat(301) }));
+    await assertSucceeds(update({ preview: 'First lines' }));
     await assertFails(updateDoc(doc(alice(), 'docs/d1'), { title: 'No timestamp' }));
   });
 });

@@ -87,6 +87,17 @@ export function listNumber(blocks: EditorBlock[], index: number): number {
   return n;
 }
 
+const PREVIEW_LENGTH = 160;
+
+/** The doc's preview: its first lines of text, joined. */
+export function previewText(blocks: EditorBlock[]): string {
+  const text = blocks
+    .map((b) => b.text.trim())
+    .filter(Boolean)
+    .join(' · ');
+  return text.length > PREVIEW_LENGTH ? `${text.slice(0, PREVIEW_LENGTH - 1)}…` : text;
+}
+
 /** Firestore writes for a save: changed blocks (set), removed blocks (delete) and the doc's timestamp. */
 export function saveOps({
   docId,
@@ -131,7 +142,11 @@ export function saveOps({
     ops.push({
       kind: 'update',
       path: `docs/${docId}`,
-      data: { ...(title !== undefined ? { title } : {}), updatedAt: serverTimestamp() },
+      data: {
+        ...(title !== undefined ? { title } : {}),
+        ...(ops.length > 0 ? { preview: previewText(blocks) } : {}),
+        updatedAt: serverTimestamp(),
+      },
     });
   }
   return ops;

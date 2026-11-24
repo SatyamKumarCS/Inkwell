@@ -34,6 +34,11 @@ export function DocCard({ doc, starred, onPress, width }: DocCardProps) {
           {doc.icon ? ` ${doc.icon}` : ''}
         </Text>
         <View style={styles.rule} />
+        {doc.preview ? (
+          <Text variant="footnote" color="textSecondary" numberOfLines={6}>
+            {doc.preview}
+          </Text>
+        ) : null}
         <View style={styles.footer}>
           <Text variant="caption" color="textTertiary" numberOfLines={1} style={styles.flex}>
             {editedLabel(timestampToMillis(doc.updatedAt), now)}

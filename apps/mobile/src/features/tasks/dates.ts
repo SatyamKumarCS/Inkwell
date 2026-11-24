@@ -125,7 +125,12 @@ export function filterTasks<T extends TaskLike>(
     case 'inbox':
       return tasks.filter((t) => !t.listId);
     case 'today':
-      return tasks.filter((t) => t.scheduledDate === todayIso);
+      // Today's tasks, plus overdue ones that are still open (finished past tasks would only clutter).
+      return tasks.filter(
+        (t) =>
+          t.scheduledDate === todayIso ||
+          (t.scheduledDate !== undefined && t.scheduledDate < todayIso && !t.done),
+      );
     case 'upcoming':
       return tasks.filter((t) => t.scheduledDate !== undefined && t.scheduledDate > todayIso);
     case 'all':

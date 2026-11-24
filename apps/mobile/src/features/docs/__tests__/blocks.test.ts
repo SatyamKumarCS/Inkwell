@@ -3,6 +3,7 @@ import {
   fromStored,
   listNumber,
   orderBetween,
+  previewText,
   saveOps,
   sortBlocks,
   typeAfterEnter,
@@ -118,7 +119,11 @@ describe('saveOps', () => {
         },
       },
       { kind: 'delete', path: 'docs/d1/blocks/gone' },
-      { kind: 'update', path: 'docs/d1', data: { title: 'Plan', updatedAt: 'SERVER_TIME' } },
+      {
+        kind: 'update',
+        path: 'docs/d1',
+        data: { title: 'Plan', preview: 'Hi · Do', updatedAt: 'SERVER_TIME' },
+      },
     ]);
   });
 
@@ -126,6 +131,17 @@ describe('saveOps', () => {
     const none = { docId: 'd1', uid: 'ada', blocks, dirty: new Set<string>(), created: new Set<string>() };
     expect(saveOps({ ...none, removed: new Set() })).toEqual([]);
     expect(saveOps({ ...none, created: new Set(['x']), removed: new Set(['x']) })).toEqual([]);
+  });
+});
+
+describe('previewText', () => {
+  it('joins block text and truncates long previews', () => {
+    expect(previewText([block('a', { text: ' One ' }), block('b'), block('c', { text: 'Two' })])).toBe(
+      'One · Two',
+    );
+    const long = previewText([block('a', { text: 'x'.repeat(400) })]);
+    expect(long).toHaveLength(160);
+    expect(long.endsWith('…')).toBe(true);
   });
 });
 
