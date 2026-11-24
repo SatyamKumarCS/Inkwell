@@ -8,15 +8,17 @@
   "compatibility_date": "2026-08-15",
   // Request logs and CPU time per invocation, used to check the 10 ms Workers Free CPU limit.
   "observability": { "enabled": true },
+  // No per-version preview URLs: each would be another public endpoint with the production secrets.
+  "preview_urls": false,
   "durable_objects": {
     "bindings": [{ "name": "AUTH_GUARD", "class_name": "AuthGuard" }],
   },
   "migrations": [{ "tag": "v1", "new_sqlite_classes": ["AuthGuard"] }],
   "vars": {
     // Set to the real Firebase project ID before the first deploy (apps/api/.dev.vars overrides it locally).
-    "FIREBASE_PROJECT_ID": "",
+    "FIREBASE_PROJECT_ID": "inkwell-cccfc",
     // Web client ID (Firebase > Authentication > Google). Empty disables Google sign-in.
-    "GOOGLE_WEB_CLIENT_ID": "",
+    "GOOGLE_WEB_CLIENT_ID": "213304221298-18vlh3g00er9mrf23frgmuunjgo1g9p7.apps.googleusercontent.com",
     "EMAIL_FROM": "Inkwell <onboarding@resend.dev>",
     "EMAIL_CODE_TTL_SECONDS": 600,
     "AUTH_IP_HOURLY_LIMIT": 10,

@@ -309,6 +309,9 @@ Security rules + tests for spaces/docs/blocks.
 **Phase 3 — Tasks & calendar**
 Task lists, task editing, reminders (local + FCM), calendar day view, daily notes, task blocks synced to tasks.
 ✅ A task with a reminder triggers a notification; a to-do block in a doc appears in the Tasks tab.
+**Setup checklist:**
+- Grant the `inkwell-api` service account (project `inkwell-cccfc`) the **Firebase Cloud Messaging API Admin**
+  role, so the API Worker can send FCM reminder pushes.
 
 **Phase 4 — AI assistant**
 Genkit functions, streaming chat, model picker, editor AI actions, embeddings + retrieval with sources.
