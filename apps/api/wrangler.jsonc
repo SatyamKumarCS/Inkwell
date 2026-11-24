@@ -1,0 +1,25 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  // Inkwell API: replaces Cloud Functions (Firebase stays on Spark). Secrets are set with
+  // `wrangler secret put` (production) or apps/api/.dev.vars (local, git-ignored); never here.
+  "name": "inkwell-api",
+  "main": "src/index.ts",
+  // Must be supported by both wrangler's runtime and the (older) one bundled with the Vitest pool.
+  "compatibility_date": "2026-08-15",
+  // Request logs and CPU time per invocation, used to check the 10 ms Workers Free CPU limit.
+  "observability": { "enabled": true },
+  "durable_objects": {
+    "bindings": [{ "name": "AUTH_GUARD", "class_name": "AuthGuard" }],
+  },
+  "migrations": [{ "tag": "v1", "new_sqlite_classes": ["AuthGuard"] }],
+  "vars": {
+    // Set to the real Firebase project ID before the first deploy (apps/api/.dev.vars overrides it locally).
+    "FIREBASE_PROJECT_ID": "",
+    // Web client ID (Firebase > Authentication > Google). Empty disables Google sign-in.
+    "GOOGLE_WEB_CLIENT_ID": "",
+    "EMAIL_FROM": "Inkwell <onboarding@resend.dev>",
+    "EMAIL_CODE_TTL_SECONDS": 600,
+    "AUTH_IP_HOURLY_LIMIT": 10,
+    "EMAIL_CODE_DAILY_CAP": 200,
+  },
+}

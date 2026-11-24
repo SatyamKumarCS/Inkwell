@@ -9,6 +9,7 @@ nodeLinker: hoisted
 
 onlyBuiltDependencies:
   - esbuild
+  - workerd # Cloudflare Workers runtime used by wrangler dev and the API tests
 
 overrides:
   # Keep a single firebase JS SDK copy in the hoisted tree, matching the version @react-native-firebase/app
