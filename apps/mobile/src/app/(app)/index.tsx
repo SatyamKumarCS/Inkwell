@@ -17,6 +17,7 @@ import {
 } from '@/components';
 import { signOut } from '@/features/auth/api';
 import { useSession } from '@/features/auth/session';
+import { FirestoreUsageRow } from '@/features/dev/FirestoreUsageRow';
 import { greeting } from '@/features/home/greeting';
 import { useSpace } from '@/features/spaces/useSpace';
 
@@ -87,6 +88,7 @@ function Home({
 
       {__DEV__ ? (
         <Card flush>
+          <FirestoreUsageRow />
           <ListRow
             title="Component gallery"
             subtitle="Developer tools"

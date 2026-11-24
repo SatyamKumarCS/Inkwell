@@ -47,6 +47,41 @@ shared spaces, publishing docs to the web, and an AI assistant that knows the us
 | Payments | RevenueCat (Phase 7) |
 | Quality | ESLint + Prettier, Jest + React Native Testing Library, `@firebase/rules-unit-testing` for security rules, **Firebase Emulator Suite** for all local development |
 
+> **Backend change (in progress):** the project stays on the Firebase **Spark** (free) plan: Auth, Firestore and
+> FCM only. Cloudflare Workers replace Cloud Functions; there is no Cloud Storage or App Hosting. The rest of this
+> spec is updated as the migration lands.
+
+### 1.1 Free-tier limits (read before designing any feature)
+
+**Firestore's Spark daily quota is the main scaling limit of this setup.**
+
+| Spark quota (per project, per day) | Limit |
+|---|---|
+| Document reads | 50,000 |
+| Document writes | 20,000 |
+| Document deletes | 20,000 |
+
+- The quota is **shared by everything**: the app's own reads, writes and listeners on every user's device, and
+  the API Worker's Firestore calls.
+- It is a **hard stop**. When a quota runs out, Firestore rejects that kind of operation for **all users** until
+  the daily reset (midnight Pacific time). There is no overage billing on Spark.
+- Reads served from the device's offline cache are free. Every document a listener receives from the server costs a
+  read, including on the first attach and when the app comes back to the foreground. Every document written is one
+  write, including each block save.
+- Design rules, for every feature:
+  - Few writes: batch block saves into one commit and debounce edits (about 800 ms or more).
+  - Rely on the offline cache.
+  - Listen narrowly: no broad or collection-wide listeners, and paginate lists.
+  - Avoid writes that only record UI state.
+- Every phase plan must estimate **reads and writes per active user per day** for its features, and how many daily
+  active users Spark supports. Check the estimate with the dev-only Firestore usage counter (section 9).
+- **TTL policies need billing**, so they are unavailable on Spark. Clean up data explicitly instead.
+
+**AI free tier.** Workers AI's free allowance is 10,000 neurons per day per account, shared by all users. With a
+small model (Llama 3.1 8B) that is roughly **600 short replies per day in total**. It is meant for **development
+and early users only**. The planned upgrade path is paid providers (Anthropic, OpenAI, Google) through **Cloudflare
+AI Gateway**, with server-side keys and per-user limits.
+
 ---
 
 ## 2. Repository structure
@@ -234,6 +269,12 @@ connected AI tools (Phase 8), subscription (Phase 7), export data, delete accoun
   syncing when back online. Show a subtle offline indicator.
 - Paginate long lists; use FlashList for large lists.
 - Cache images with expo-image; compress uploads before sending to Storage.
+- **Firestore usage counter (dev builds only):**
+  - All app Firestore access goes through `apps/mobile/src/lib/db.ts`, which counts approximate billed reads and
+    writes for the session (cache hits excluded).
+  - The counter is shown on Home and the dev screen, and logged to Metro.
+  - Use it to check each phase's quota estimate (section 1.1).
+  - A lint rule blocks importing `@react-native-firebase/firestore` anywhere else.
 
 ---
 
@@ -253,6 +294,17 @@ Apple, Google and email-code sign-in; name screen; default space creation; app t
 Doc CRUD, home sections, browsing/sorting/folders, star, trash, block editor with block-level sync, images.
 Security rules + tests for spaces/docs/blocks.
 ✅ Create a doc offline with several block types, go online, see it on a second device/emulator.
+**Quota budget (required in the Phase 2 plan):**
+- Estimate Firestore reads and writes per active user per day for the editor, doc lists, home sections and
+  tasks, and say roughly how many daily active users Spark supports (section 1.1). Tasks ship in Phase 3, but the
+  estimate includes them so the total budget is known up front.
+- Design for few writes:
+  - batch block saves into one commit per debounce;
+  - choose a sensible debounce;
+  - rely on the offline cache;
+  - paginate lists;
+  - avoid broad listeners.
+- Check the numbers with the dev Firestore usage counter.
 
 **Phase 3 — Tasks & calendar**
 Task lists, task editing, reminders (local + FCM), calendar day view, daily notes, task blocks synced to tasks.

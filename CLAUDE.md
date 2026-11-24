@@ -15,6 +15,9 @@ Project: "Inkwell" — notes, docs, tasks and AI assistant mobile app. Full spec
   name, logo, icons or brand colors.
 - Before finishing any task run: `pnpm typecheck && pnpm lint && pnpm test` and fix failures.
 - Any change to Firestore access must come with updated `firestore.rules` and rules tests.
+- Firebase stays on the Spark plan: its daily quota (50k reads / 20k writes, shared by all users) is the main
+  scaling limit (SPEC.md §1.1). App Firestore access goes only through `apps/mobile/src/lib/db.ts` (lint-enforced),
+  which counts reads/writes in dev builds; every phase plan estimates reads/writes per active user per day.
 - Check current official docs before using Expo, React Native Firebase, Firebase or Genkit APIs.
 - If unsure, ask instead of guessing.
 
@@ -26,6 +29,7 @@ Use Node 24 (`nvm use`). JDK 17 for Android builds; JDK 21+ for the Firebase emu
 - Run Android / iOS dev build: `pnpm android` / `pnpm ios`; Metro only: `pnpm mobile`
 - Checks: `pnpm typecheck && pnpm lint && pnpm test` (`test` includes rules tests via `firebase emulators:exec`)
 - Rules tests only: `pnpm test:rules`
+- Test emulators use their own ports (`firebase.test.json`), so tests can run while `pnpm emulators` is up
 - Functions tests only (Auth + Firestore emulators): `pnpm test:functions`
 - Email-code sign-in in the emulator: the code is printed in the Functions emulator log, never emailed
 - Add a mobile dependency: `cd apps/mobile && npx expo install <pkg>`

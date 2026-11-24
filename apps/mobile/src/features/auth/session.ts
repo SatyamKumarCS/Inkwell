@@ -1,10 +1,10 @@
 import { getAuth, onAuthStateChanged } from '@react-native-firebase/auth';
-import { doc, getFirestore, onSnapshot } from '@react-native-firebase/firestore';
 import { useEffect } from 'react';
 import { create } from 'zustand';
 import { Paths, userSchema, type User } from '@inkwell/shared';
 
 import { notificationPromptSupported } from '@/features/onboarding/notifications';
+import { listenDoc } from '@/lib/db';
 
 import { deriveGate, type AuthStatus, type Gate, type ProfileStatus } from './gate';
 import type { NameHint } from './methods';
@@ -75,16 +75,14 @@ export function useSessionListener(): void {
       }
 
       useSession.setState({ authStatus: 'signedIn', uid: user.uid, profileStatus: 'loading' });
-      unsubscribeProfile = onSnapshot(
-        doc(getFirestore(), Paths.user(user.uid)),
-        { includeMetadataChanges: true },
+      unsubscribeProfile = listenDoc(
+        Paths.user(user.uid),
         (snapshot) => {
           useSession.setState(
             profileFromSnapshot({
-              exists: snapshot.exists(),
-              fromCache: snapshot.metadata.fromCache,
-              // Pending serverTimestamp() writes would otherwise read as null while offline.
-              data: snapshot.data({ serverTimestamps: 'estimate' }),
+              exists: snapshot.exists,
+              fromCache: snapshot.fromCache,
+              data: snapshot.data,
             }),
           );
         },
@@ -92,6 +90,8 @@ export function useSessionListener(): void {
           console.warn('[session] profile listener failed', error);
           useSession.setState({ profileStatus: 'error' });
         },
+        // Needed to see the server's "doesn't exist" answer after a cache miss (new accounts).
+        { includeMetadataChanges: true },
       );
     });
 

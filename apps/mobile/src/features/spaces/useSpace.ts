@@ -1,6 +1,7 @@
-import { doc, getFirestore, onSnapshot } from '@react-native-firebase/firestore';
 import { useEffect, useState } from 'react';
 import { Paths, spaceSchema, type Space } from '@inkwell/shared';
+
+import { listenDoc } from '@/lib/db';
 
 export type SpaceState =
   | { status: 'loading'; space: null }
@@ -16,12 +17,12 @@ export function useSpace(spaceId: string): SpaceState {
 
   useEffect(
     () =>
-      onSnapshot(
-        doc(getFirestore(), Paths.space(spaceId)),
+      listenDoc(
+        Paths.space(spaceId),
         (snapshot) => {
           // A cache miss while offline stays "loading" until the server answers.
-          if (!snapshot.exists() && snapshot.metadata.fromCache) return;
-          const parsed = spaceSchema.safeParse(snapshot.data({ serverTimestamps: 'estimate' }));
+          if (!snapshot.exists && snapshot.fromCache) return;
+          const parsed = spaceSchema.safeParse(snapshot.data);
           setResult({
             spaceId,
             state: parsed.success

@@ -17,6 +17,7 @@ import {
   Text,
   TextField,
 } from '@/components';
+import { FirestoreUsageRow } from '@/features/dev/FirestoreUsageRow';
 import { getEmulatorHost, firebaseEmulatorsEnabled } from '@/lib/env';
 import { checkFirestore, type BackendStatus } from '@/lib/firebase';
 
@@ -129,6 +130,9 @@ export default function DevScreen() {
               {statusLabel[status]}
             </Text>
             <Button label="Check again" variant="secondary" onPress={runCheck} />
+          </Card>
+          <Card flush>
+            <FirestoreUsageRow />
           </Card>
         </>
       ) : null}
