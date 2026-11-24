@@ -272,6 +272,9 @@ Full-text search across docs and tasks, all settings screens, export data, delet
 **Phase 7 — Monetization & release prep**
 RevenueCat paywall (AI limits for free tier), Crashlytics, Analytics events, app icons/splash,
 store metadata checklist, EAS production builds.
+**Firebase App Check** (Play Integrity on Android, App Attest on iOS) enforced on all callable functions —
+first on `requestEmailCode` / `verifyEmailCode`, which are callable without sign-in and today rely only on
+per-email, per-IP and global daily rate limits.
 
 **Phase 8 — Later**
 Live co-editing with Yjs + Hocuspocus on Cloud Run; an **MCP server** (Cloud Run, OAuth) so external AI

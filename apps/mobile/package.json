@@ -7,6 +7,7 @@
     "@react-native-firebase/app": "^27.1.1",
     "@react-native-firebase/auth": "^27.1.1",
     "@react-native-firebase/firestore": "^27.1.1",
+    "@react-native-firebase/functions": "^27.1.1",
     "expo": "~58.0.26",
     "expo-build-properties": "~58.0.12",
     "expo-constants": "~58.0.16",
@@ -14,6 +15,7 @@
     "expo-haptics": "~58.0.8",
     "expo-image": "~58.0.18",
     "expo-linking": "~58.0.17",
+    "expo-network": "~58.0.5",
     "expo-router": "~58.0.32",
     "expo-splash-screen": "~58.0.14",
     "expo-status-bar": "~58.0.5",
@@ -55,14 +57,19 @@
     "preset": "jest-expo",
     "setupFiles": [
       "react-native-unistyles/mocks",
-      "<rootDir>/src/theme/unistyles.ts"
+      "<rootDir>/src/theme/unistyles.ts",
+      "<rootDir>/jest.setup.ts"
     ],
     "transformIgnorePatterns": [
       "node_modules/(?!((jest-)?react-native|@react-native(-community)?|expo(nent)?|@expo(nent)?/.*|@expo-google-fonts/.*|react-navigation|@react-navigation/.*|react-native-svg|lucide-react-native|react-native-unistyles|react-native-nitro-modules|@inkwell/.*))"
     ],
     "moduleNameMapper": {
       "^lucide-react-native$": "<rootDir>/../../node_modules/lucide-react-native/dist/cjs/lucide-react-native.js"
-    }
+    },
+    "resolver": "react-native-reanimated/jest/resolver",
+    "setupFilesAfterEnv": [
+      "<rootDir>/jest.setup-after-env.ts"
+    ]
   },
   "expo": {
     "doctor": {

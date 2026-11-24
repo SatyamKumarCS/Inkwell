@@ -7,13 +7,19 @@
     "development": {
       "developmentClient": true,
       "distribution": "internal",
+      "environment": "development",
       "env": { "EXPO_PUBLIC_USE_FIREBASE_EMULATORS": "true" }
     },
     "preview": {
-      "distribution": "internal"
+      "distribution": "internal",
+      "environment": "preview",
+      "android": { "buildType": "apk" },
+      "env": { "EXPO_PUBLIC_USE_FIREBASE_EMULATORS": "false" }
     },
     "production": {
-      "autoIncrement": true
+      "autoIncrement": true,
+      "environment": "production",
+      "env": { "EXPO_PUBLIC_USE_FIREBASE_EMULATORS": "false" }
     }
   },
   "submit": {

@@ -8,9 +8,14 @@ export const Collections = {
   tasks: 'tasks',
   publicDocs: 'publicDocs',
   config: 'config',
+  /** Server-only (email-code sign-in). */
+  emailCodes: 'emailCodes',
+  /** Server-only (rate-limit counters). */
+  rateLimits: 'rateLimits',
 } as const;
 
 export const Paths = {
+  space: (spaceId: string) => `spaces/${spaceId}`,
   user: (uid: string) => `users/${uid}`,
   stars: (uid: string) => `users/${uid}/stars`,
   recents: (uid: string) => `users/${uid}/recents`,

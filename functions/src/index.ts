@@ -1,10 +1,16 @@
-import { setGlobalOptions } from 'firebase-functions/v2';
+import './options'; // must stay first: sets the region before any function is defined
 import { onRequest } from 'firebase-functions/v2/https';
 
-// Functions are built in later phases: auth OTP (1), notifications (3), AI (4), publishing (5).
-setGlobalOptions({ region: 'us-central1', maxInstances: 10 });
+import { completeProfileFn, requestEmailCodeFn, verifyEmailCodeFn } from './auth/callables';
+
+// Later phases add notifications (3), AI (4) and publishing (5).
 
 /** Lets local dev confirm the Functions emulator is running. Returns no data. */
 export const healthcheck = onRequest((_req, res) => {
   res.json({ ok: true });
 });
+
+// Export names must match `Callables` in @inkwell/shared.
+export const requestEmailCode = requestEmailCodeFn;
+export const verifyEmailCode = verifyEmailCodeFn;
+export const completeProfile = completeProfileFn;

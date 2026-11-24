@@ -10,7 +10,8 @@
   "scripts": {
     "build": "esbuild src/index.ts --bundle --platform=node --target=node22 --format=esm --outfile=lib/index.js --external:firebase-functions --external:firebase-admin",
     "typecheck": "tsc --noEmit",
-    "lint": "eslint ."
+    "lint": "eslint .",
+    "test:emulator": "vitest run"
   },
   "dependencies": {
     "firebase-admin": "^14.5.1",
@@ -19,10 +20,11 @@
   "devDependencies": {
     "@eslint/js": "^10.0.1",
     "@inkwell/shared": "workspace:*",
-    "esbuild": "^0.28.2",
     "@types/node": "^24.0.0",
+    "esbuild": "^0.28.2",
     "eslint": "^10.15.0",
     "typescript": "~6.0.3",
-    "typescript-eslint": "^8.73.0"
+    "typescript-eslint": "^8.73.0",
+    "vitest": "^5.1.1"
   }
 }

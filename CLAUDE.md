@@ -26,6 +26,8 @@ Use Node 24 (`nvm use`). JDK 17 for Android builds; JDK 21+ for the Firebase emu
 - Run Android / iOS dev build: `pnpm android` / `pnpm ios`; Metro only: `pnpm mobile`
 - Checks: `pnpm typecheck && pnpm lint && pnpm test` (`test` includes rules tests via `firebase emulators:exec`)
 - Rules tests only: `pnpm test:rules`
+- Functions tests only (Auth + Firestore emulators): `pnpm test:functions`
+- Email-code sign-in in the emulator: the code is printed in the Functions emulator log, never emailed
 - Add a mobile dependency: `cd apps/mobile && npx expo install <pkg>`
 - Build functions: `pnpm --filter @inkwell/functions build`; deploy (real project only): `npx firebase deploy --only functions`
 
@@ -33,3 +35,14 @@ Use Node 24 (`nvm use`). JDK 17 for Android builds; JDK 21+ for the Firebase emu
 - Routes live in `apps/mobile/src/app` (Expo SDK 58 default) instead of `apps/mobile/app`.
 - Styling: Unistyles 3 (theme tokens as typed objects, adaptive light/dark without re-renders).
 - Non-RN packages (shared, rules tests) use Vitest; the mobile app uses Jest + RNTL as specified.
+
+## Phase 1 decisions
+- Functions and Firestore run in `asia-south1` (`FUNCTIONS_REGION` in `packages/shared`). `functions/src/options.ts`
+  sets the region and must stay the first import in `functions/src/index.ts`.
+- One email = one account: every sign-in method resolves to the user via `findOrCreateUserByEmail` (functions).
+- Profiles and default spaces are created only by the `completeProfile` callable; `emailCodes` and `rateLimits`
+  are server-only.
+- Non-secret Functions params live in `functions/.env` (committed); secrets only via `firebase functions:secrets:set`
+  (emulator: `functions/.secret.local`, git-ignored).
+- Android is the primary platform; iOS (simulator only) has no Apple sign-in or push until there is an Apple
+  Developer account.

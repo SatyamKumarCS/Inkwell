@@ -7,6 +7,27 @@ const googleServicesJson =
 const googleServicesPlist =
   process.env.GOOGLE_SERVICES_PLIST || './firebase/GoogleService-Info.demo.plist';
 
+// Release builds (EAS `preview` / `production`) must use the real Firebase project. These variables only
+// exist on EAS build workers, so this never blocks local commands.
+const easProfile = process.env.EAS_BUILD === 'true' ? process.env.EAS_BUILD_PROFILE : undefined;
+if (easProfile === 'preview' || easProfile === 'production') {
+  if (process.env.EAS_BUILD_PLATFORM === 'ios') {
+    throw new Error(
+      `iOS ${easProfile} builds are not set up yet (they need an Apple Developer account).`,
+    );
+  }
+  if (!process.env.GOOGLE_SERVICES_JSON) {
+    throw new Error(
+      `The ${easProfile} build has no GOOGLE_SERVICES_JSON. Add google-services.json as an EAS file ` +
+        `variable in the "${easProfile}" environment instead of shipping the demo config.`,
+    );
+  }
+}
+
+// Replace with the final reverse-DNS ID before registering the app with Firebase (one value, both platforms).
+// The demo configs in ./firebase/ must use the same ID.
+const APP_ID = 'com.inkwell.app';
+
 // "Inkwell" is the working name — rename here (and in bundle IDs) once the final name is chosen.
 const config: ExpoConfig = {
   name: 'Inkwell',
@@ -17,13 +38,15 @@ const config: ExpoConfig = {
   scheme: 'inkwell',
   userInterfaceStyle: 'automatic',
   ios: {
-    bundleIdentifier: 'com.inkwell.app',
+    bundleIdentifier: APP_ID,
     googleServicesFile: googleServicesPlist,
     supportsTablet: false,
   },
   android: {
-    package: 'com.inkwell.app',
+    package: APP_ID,
     googleServicesFile: googleServicesJson,
+    // Android 13+ runtime permission, requested after the onboarding pre-permission screen.
+    permissions: ['android.permission.POST_NOTIFICATIONS'],
     adaptiveIcon: {
       backgroundColor: '#12A594',
       foregroundImage: './assets/images/android-icon-foreground.png',

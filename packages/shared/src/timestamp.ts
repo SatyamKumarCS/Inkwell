@@ -18,6 +18,10 @@ export const timestampSchema = z.custom<FirestoreTimestamp>(
   { message: 'Expected a Firestore timestamp' },
 );
 
+export function timestampToMillis(ts: FirestoreTimestamp): number {
+  return ts.seconds * 1000 + Math.floor(ts.nanoseconds / 1_000_000);
+}
+
 /** Fields every stored document carries (server timestamps). */
 export const auditFieldsSchema = z.object({
   createdAt: timestampSchema,

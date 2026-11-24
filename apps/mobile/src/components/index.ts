@@ -5,6 +5,7 @@ export * from './EmptyState';
 export * from './IconButton';
 export * from './ListRow';
 export * from './Logo';
+export * from './OfflineBanner';
 export * from './Screen';
 export * from './SectionHeader';
 export * from './Skeleton';

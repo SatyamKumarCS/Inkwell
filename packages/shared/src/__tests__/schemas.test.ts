@@ -9,6 +9,7 @@ describe('shared schemas', () => {
       createdAt: ts,
       updatedAt: ts,
       displayName: 'Ada',
+      firstName: 'Ada',
       email: 'ada@example.com',
       photoURL: null,
       defaultSpaceId: 'space1',
@@ -16,6 +17,8 @@ describe('shared schemas', () => {
     });
     expect(user.settings).toEqual({ theme: 'system', startOfWeek: 1 });
     expect(user.fcmTokens).toEqual([]);
+    expect(user.lastName).toBe('');
+    expect(user.onboarding).toEqual({});
   });
 
   it('rejects a space with an unknown role', () => {

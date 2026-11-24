@@ -58,6 +58,19 @@ pnpm mobile                 # later runs: just start Metro for an already-instal
 This app uses native modules (React Native Firebase, Unistyles), so it needs a **development build** — Expo Go
 won't work. The first `pnpm android` / `pnpm ios` takes several minutes.
 
+### Signing in locally
+
+Sign-in uses a 6-digit email code. With the emulators, **no email is sent**: the code is printed in the Functions
+emulator log (the `pnpm emulators` terminal, or Emulator UI → Logs) as `[emulator] Sign-in code for you@example.com`.
+Any email address works. `pnpm emulators` creates `functions/.secret.local` (dev-only secrets) on first run.
+
+To try the "expired code" error without waiting 10 minutes, create `functions/.env.local` (git-ignored) with
+`EMAIL_CODE_TTL_SECONDS=30` and restart the emulators. Other limits (per-IP hourly, global daily cap) are params in
+`functions/.env`.
+
+After you change native config (e.g. `app.config.ts` permissions or a new native package), rebuild the dev client
+with `pnpm android` / `pnpm ios`.
+
 **On a physical phone:** connect it by USB (Android) or select it in `expo run:ios --device`, keep it on the same
 Wi-Fi as your computer, and the app finds the emulators via the Metro host automatically. Override with
 `EXPO_PUBLIC_EMULATOR_HOST` in `apps/mobile/.env` if needed. Cloud builds: `npx eas-cli@latest build --profile development`.
@@ -67,6 +80,7 @@ Wi-Fi as your computer, and the app finds the emulators via the Metro host autom
 ```sh
 pnpm typecheck && pnpm lint && pnpm test   # test = unit tests + security rules tests in the emulators
 pnpm test:rules                            # rules tests only
+pnpm test:functions                        # Cloud Functions tests only (Auth + Firestore emulators)
 pnpm format                                # prettier
 ```
 

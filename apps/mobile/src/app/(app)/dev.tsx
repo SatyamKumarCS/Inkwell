@@ -27,8 +27,8 @@ const statusLabel: Record<BackendStatus | 'checking', string> = {
   error: 'Unexpected error',
 };
 
-/** Phase 0 placeholder: shows the design system and confirms the emulator wiring. Replaced by Home in Phase 1. */
-export default function PlaceholderScreen() {
+/** Dev-only: the component gallery and emulator check from Phase 0, linked from Home in dev builds. */
+export default function DevScreen() {
   const [status, setStatus] = useState<BackendStatus | 'checking'>('checking');
 
   const runCheck = useCallback(() => {
