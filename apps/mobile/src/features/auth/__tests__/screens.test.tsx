@@ -1,5 +1,5 @@
 import { act, fireEvent, render, screen } from '@testing-library/react-native';
-import { router, useLocalSearchParams } from 'expo-router';
+import { useLocalSearchParams } from 'expo-router';
 
 import SignInScreen from '@/app/(auth)/sign-in';
 import VerifyScreen from '@/app/(auth)/verify';
@@ -8,8 +8,9 @@ import NameScreen from '@/app/(onboarding)/name';
 import { completeProfile, requestEmailCode, signInWithEmailCode } from '../api';
 import { useSession } from '../session';
 
+const mockRouter = { push: jest.fn(), back: jest.fn() };
 jest.mock('expo-router', () => ({
-  router: { push: jest.fn(), back: jest.fn() },
+  useRouter: () => mockRouter,
   useLocalSearchParams: jest.fn(() => ({})),
 }));
 jest.mock('../api', () => ({
@@ -46,7 +47,7 @@ describe('SignInScreen', () => {
     await fireEvent.press(screen.getByRole('button', { name: 'Continue' }));
 
     expect(requestEmailCode).toHaveBeenCalledWith('ada@example.com');
-    expect(router.push).toHaveBeenCalledWith({
+    expect(mockRouter.push).toHaveBeenCalledWith({
       pathname: '/verify',
       params: { email: 'ada@example.com', resendAfter: '60' },
     });
@@ -60,7 +61,7 @@ describe('SignInScreen', () => {
     await fireEvent.changeText(screen.getByLabelText('Email'), 'ada@example.com');
     await fireEvent.press(screen.getByRole('button', { name: 'Continue' }));
 
-    expect(router.push).toHaveBeenCalledWith({
+    expect(mockRouter.push).toHaveBeenCalledWith({
       pathname: '/verify',
       params: { email: 'ada@example.com', resendAfter: '45' },
     });
@@ -75,7 +76,7 @@ describe('SignInScreen', () => {
     expect(
       screen.getByText("We can't send sign-in codes right now. Please try again later."),
     ).toBeOnTheScreen();
-    expect(router.push).not.toHaveBeenCalled();
+    expect(mockRouter.push).not.toHaveBeenCalled();
   });
 });
 

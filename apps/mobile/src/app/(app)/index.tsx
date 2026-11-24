@@ -1,4 +1,4 @@
-import { router } from 'expo-router';
+import { useRouter } from 'expo-router';
 import { FileText, LogOut, Wrench } from 'lucide-react-native';
 import { Alert, View } from 'react-native';
 import { StyleSheet } from 'react-native-unistyles';
@@ -49,6 +49,7 @@ function Home({
   displayName: string;
   spaceId: string;
 }) {
+  const router = useRouter();
   const space = useSpace(spaceId);
 
   return (

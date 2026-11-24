@@ -11,7 +11,7 @@
         "android_client_info": { "package_name": "com.satyamkumar.inkwell" }
       },
       "oauth_client": [],
-      "api_key": [{ "current_key": "AIzaSyDemoKeyForEmulatorOnly000000000000" }],
+      "api_key": [{ "current_key": "AIzaSyDemoKeyForEmulatorOnly00000000000" }],
       "services": { "appinvite_service": { "other_platform_oauth_client": [] } }
     }
   ],

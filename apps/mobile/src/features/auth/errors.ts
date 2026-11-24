@@ -18,6 +18,14 @@ export function toAuthFailure(error: unknown): AuthFailure {
   ) {
     return { reason: 'offline' };
   }
+  if (__DEV__) {
+    // "Something went wrong" alone is undebuggable: show the raw error in the Metro terminal.
+    const { message, details: rawDetails } = (error ?? {}) as {
+      message?: unknown;
+      details?: unknown;
+    };
+    console.warn('[auth] unexpected error', { code, message, details: rawDetails });
+  }
   return { reason: 'unknown' };
 }
 

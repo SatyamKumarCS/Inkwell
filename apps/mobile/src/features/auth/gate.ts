@@ -1,3 +1,4 @@
+import type { Href } from 'expo-router';
 import type { User } from '@inkwell/shared';
 
 export type AuthStatus = 'initializing' | 'signedOut' | 'signedIn';
@@ -35,4 +36,26 @@ export function deriveGate(
     return 'needsNotifications';
   }
   return 'ready';
+}
+
+/**
+ * The one route each gate shows. Every `Stack.Protected` redirects here, so when a gate changes (or the app
+ * opens on a URL the gate doesn't allow) Expo Router never has to guess a destination.
+ */
+export function gateHref(gate: Gate): Href {
+  switch (gate) {
+    case 'initializing':
+    case 'loadingProfile':
+      return '/loading';
+    case 'signedOut':
+      return '/sign-in';
+    case 'needsProfile':
+      return '/name';
+    case 'needsTour':
+      return '/tour';
+    case 'needsNotifications':
+      return '/notifications';
+    case 'ready':
+      return '/';
+  }
 }

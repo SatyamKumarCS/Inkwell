@@ -1,4 +1,4 @@
-import { router, useLocalSearchParams } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import { ChevronLeft } from 'lucide-react-native';
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, View } from 'react-native';
@@ -18,6 +18,7 @@ function formatCountdown(seconds: number): string {
 }
 
 export default function VerifyScreen() {
+  const router = useRouter();
   const { theme } = useUnistyles();
   const params = useLocalSearchParams<{ email: string; resendAfter?: string }>();
   const email = params.email ?? '';

@@ -1,7 +1,8 @@
 import { Stack } from 'expo-router';
 import { useUnistyles } from 'react-native-unistyles';
 
-export const unstable_settings = { initialRouteName: 'index' };
+// SDK 58: the group's default screen (formerly initialRouteName).
+export const unstable_settings = { anchor: 'index' };
 
 // The bottom tab bar (Home, Tasks, Calendar, Assistant, Space) arrives with Phase 2.
 export default function AppLayout() {

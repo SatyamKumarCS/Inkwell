@@ -1,7 +1,8 @@
 import { Stack } from 'expo-router';
 import { useUnistyles } from 'react-native-unistyles';
 
-export const unstable_settings = { initialRouteName: 'sign-in' };
+// SDK 58: the group's default screen (formerly initialRouteName).
+export const unstable_settings = { anchor: 'sign-in' };
 
 export default function AuthLayout() {
   const { theme } = useUnistyles();

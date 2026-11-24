@@ -31,12 +31,21 @@ const statusLabel: Record<BackendStatus | 'checking', string> = {
 export default function DevScreen() {
   const [status, setStatus] = useState<BackendStatus | 'checking'>('checking');
 
-  const runCheck = useCallback(() => {
-    setStatus('checking');
-    checkFirestore().then(setStatus);
+  // First check on mount: state starts as 'checking' and only changes when the async result arrives.
+  useEffect(() => {
+    let mounted = true;
+    void checkFirestore().then((result) => {
+      if (mounted) setStatus(result);
+    });
+    return () => {
+      mounted = false;
+    };
   }, []);
 
-  useEffect(runCheck, [runCheck]);
+  const runCheck = useCallback(() => {
+    setStatus('checking');
+    void checkFirestore().then(setStatus);
+  }, []);
 
   return (
     <Screen scroll>
