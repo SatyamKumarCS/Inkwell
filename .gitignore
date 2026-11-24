@@ -7,6 +7,8 @@ node_modules/
 .env
 .env.*
 !.env.example
+# Non-secret Functions params (see the file header)
+!functions/.env
 functions/.secret.local
 service-account*.json
 
@@ -22,6 +24,8 @@ coverage/
 # firebase
 .firebase/
 .emulator-data/
+# temporary folders the emulators write while exporting on exit
+firebase-export-*/
 firebase-debug.log*
 firestore-debug.log*
 storage-debug.log*

@@ -27,16 +27,25 @@ const statusLabel: Record<BackendStatus | 'checking', string> = {
   error: 'Unexpected error',
 };
 
-/** Phase 0 placeholder: shows the design system and confirms the emulator wiring. Replaced by Home in Phase 1. */
-export default function PlaceholderScreen() {
+/** Dev-only: the component gallery and emulator check from Phase 0, linked from Home in dev builds. */
+export default function DevScreen() {
   const [status, setStatus] = useState<BackendStatus | 'checking'>('checking');
+
+  // First check on mount: state starts as 'checking' and only changes when the async result arrives.
+  useEffect(() => {
+    let mounted = true;
+    void checkFirestore().then((result) => {
+      if (mounted) setStatus(result);
+    });
+    return () => {
+      mounted = false;
+    };
+  }, []);
 
   const runCheck = useCallback(() => {
     setStatus('checking');
-    checkFirestore().then(setStatus);
+    void checkFirestore().then(setStatus);
   }, []);
-
-  useEffect(runCheck, [runCheck]);
 
   return (
     <Screen scroll>

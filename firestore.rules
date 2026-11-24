@@ -1,9 +1,68 @@
 rules_version = '2';
 
-// Phase 0: everything is locked down. Each later phase opens exactly the collections it needs,
-// together with rules tests in tests/rules.
+// Phase 1: users read/update their own profile, members read their spaces. Profiles and default spaces are
+// created by the completeProfile function; emailCodes and rateLimits are server-only. Everything else stays
+// locked until its phase opens it, together with rules tests in tests/rules.
 service cloud.firestore {
   match /databases/{database}/documents {
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function isUser(uid) {
+      return signedIn() && request.auth.uid == uid;
+    }
+
+    function validName(value, minLength) {
+      return value is string && value.size() >= minLength && value.size() <= 50;
+    }
+
+    function validSettings(settings) {
+      return settings is map
+        && settings.keys().hasOnly(['theme', 'startOfWeek', 'defaultAiModelId', 'aiResponseStyle'])
+        && settings.theme in ['light', 'dark', 'system']
+        && settings.startOfWeek in [0, 1]
+        && (!('defaultAiModelId' in settings) || settings.defaultAiModelId is string)
+        && (!('aiResponseStyle' in settings)
+          || settings.aiResponseStyle in ['concise', 'balanced', 'detailed']);
+    }
+
+    function validOnboarding(onboarding) {
+      return onboarding is map
+        && onboarding.keys().hasOnly(['tourCompletedAt', 'notificationsPromptedAt'])
+        && (!('tourCompletedAt' in onboarding) || onboarding.tourCompletedAt is timestamp)
+        && (!('notificationsPromptedAt' in onboarding)
+          || onboarding.notificationsPromptedAt is timestamp);
+    }
+
+    // Clients may edit their name, settings and onboarding progress — nothing else (email, spaces and
+    // tokens are managed server-side).
+    function validProfileUpdate() {
+      let data = request.resource.data;
+      return data.diff(resource.data).affectedKeys()
+          .hasOnly(['displayName', 'firstName', 'lastName', 'settings', 'onboarding', 'updatedAt'])
+        && data.updatedAt == request.time
+        && data.displayName is string && data.displayName.size() > 0 && data.displayName.size() <= 100
+        && validName(data.firstName, 1)
+        && validName(data.lastName, 0)
+        && validSettings(data.settings)
+        && validOnboarding(data.onboarding);
+    }
+
+    match /users/{uid} {
+      allow read: if isUser(uid);
+      allow update: if isUser(uid) && validProfileUpdate();
+      // create: completeProfile function. delete: deleteAccount function (Phase 6).
+      allow create, delete: if false;
+    }
+
+    match /spaces/{spaceId} {
+      allow read: if signedIn() && request.auth.uid in resource.data.memberIds;
+      // Space editing and membership arrive in Phases 2 and 5.
+      allow write: if false;
+    }
+
+    // Default deny (includes emailCodes and rateLimits, which only Cloud Functions touch).
     match /{document=**} {
       allow read, write: if false;
     }

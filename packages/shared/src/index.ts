@@ -5,3 +5,5 @@ export * from './models/space';
 export * from './models/doc';
 export * from './models/task';
 export * from './models/ai';
+export * from './models/auth';
+export * from './api/auth';

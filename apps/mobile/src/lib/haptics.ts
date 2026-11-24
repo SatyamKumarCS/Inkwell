@@ -6,4 +6,6 @@ export const haptics = {
   success: () =>
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => undefined),
   impact: () => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => undefined),
+  error: () =>
+    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error).catch(() => undefined),
 };

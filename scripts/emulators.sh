@@ -3,6 +3,12 @@
 set -e
 cd "$(dirname "$0")/.."
 
+# Dev-only secrets for the Functions emulator (OTP pepper etc.). Real values live in Secret Manager.
+if [ ! -f functions/.secret.local ]; then
+  cp functions/.secret.local.example functions/.secret.local
+  echo "Created functions/.secret.local from the example (dev-only values)."
+fi
+
 pnpm --filter @inkwell/functions build
 
 IMPORT=""

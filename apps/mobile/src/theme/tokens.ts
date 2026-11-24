@@ -104,6 +104,8 @@ export const iconSize = {
   md: 20,
   lg: 24,
   xl: 32,
+  /** Illustration icons, e.g. onboarding cards. */
+  hero: 56,
 } as const;
 
 interface Shadows {

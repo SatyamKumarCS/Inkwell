@@ -7,23 +7,48 @@ const googleServicesJson =
 const googleServicesPlist =
   process.env.GOOGLE_SERVICES_PLIST || './firebase/GoogleService-Info.demo.plist';
 
+// Release builds (EAS `preview` / `production`) must use the real Firebase project. These variables only
+// exist on EAS build workers, so this never blocks local commands.
+const easProfile = process.env.EAS_BUILD === 'true' ? process.env.EAS_BUILD_PROFILE : undefined;
+if (easProfile === 'preview' || easProfile === 'production') {
+  if (process.env.EAS_BUILD_PLATFORM === 'ios') {
+    throw new Error(
+      `iOS ${easProfile} builds are not set up yet (they need an Apple Developer account).`,
+    );
+  }
+  if (!process.env.GOOGLE_SERVICES_JSON) {
+    throw new Error(
+      `The ${easProfile} build has no GOOGLE_SERVICES_JSON. Add google-services.json as an EAS file ` +
+        `variable in the "${easProfile}" environment instead of shipping the demo config.`,
+    );
+  }
+}
+
+// Final app ID (Android package and iOS bundle ID). Case-sensitive: Firebase, EAS credentials and Google OAuth
+// clients must use exactly this spelling. The demo configs in ./firebase/ must use the same ID.
+const APP_ID = 'com.satyamkumar.inkwell';
+
 // "Inkwell" is the working name — rename here (and in bundle IDs) once the final name is chosen.
 const config: ExpoConfig = {
   name: 'Inkwell',
   slug: 'inkwell',
+  // EAS project @saty_satyam1122/inkwell (not a secret). Set here because EAS can't write to app.config.ts.
+  owner: 'saty_satyam1122',
   version: '0.1.0',
   orientation: 'portrait',
   icon: './assets/images/icon.png',
   scheme: 'inkwell',
   userInterfaceStyle: 'automatic',
   ios: {
-    bundleIdentifier: 'com.inkwell.app',
+    bundleIdentifier: APP_ID,
     googleServicesFile: googleServicesPlist,
     supportsTablet: false,
   },
   android: {
-    package: 'com.inkwell.app',
+    package: APP_ID,
     googleServicesFile: googleServicesJson,
+    // Android 13+ runtime permission, requested after the onboarding pre-permission screen.
+    permissions: ['android.permission.POST_NOTIFICATIONS'],
     adaptiveIcon: {
       backgroundColor: '#12A594',
       foregroundImage: './assets/images/android-icon-foreground.png',
@@ -45,9 +70,20 @@ const config: ExpoConfig = {
     ],
     '@react-native-firebase/app',
     '@react-native-firebase/auth',
-    // React Native Firebase v27 resolves the Firebase Apple SDK via SPM, which requires dynamic frameworks.
-    ['expo-build-properties', { ios: { useFrameworks: 'dynamic' } }],
+    [
+      'expo-build-properties',
+      {
+        // React Native Firebase v27 resolves the Firebase Apple SDK via SPM, which requires dynamic frameworks.
+        ios: { useFrameworks: 'dynamic' },
+        // Firebase Android BoM 35 (firebase-auth 25) ships Kotlin 2.4 metadata; RN 0.88 defaults to Kotlin 2.2,
+        // which can't read it. RN Firebase v27 requires the Kotlin Gradle plugin >= 2.4.0.
+        android: { kotlinVersion: '2.4.0' },
+      },
+    ],
   ],
+  extra: {
+    eas: { projectId: '645ea6f2-f583-4a4f-acb3-a7f6660f03fd' },
+  },
   experiments: {
     typedRoutes: true,
     reactCompiler: true,

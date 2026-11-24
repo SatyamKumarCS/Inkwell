@@ -4,16 +4,29 @@
     "appVersionSource": "remote"
   },
   "build": {
+    "base": {
+      "node": "24.22.0",
+      "pnpm": "10.29.2"
+    },
     "development": {
+      "extends": "base",
       "developmentClient": true,
       "distribution": "internal",
+      "environment": "development",
       "env": { "EXPO_PUBLIC_USE_FIREBASE_EMULATORS": "true" }
     },
     "preview": {
-      "distribution": "internal"
+      "extends": "base",
+      "distribution": "internal",
+      "environment": "preview",
+      "android": { "buildType": "apk" },
+      "env": { "EXPO_PUBLIC_USE_FIREBASE_EMULATORS": "false" }
     },
     "production": {
-      "autoIncrement": true
+      "extends": "base",
+      "autoIncrement": true,
+      "environment": "production",
+      "env": { "EXPO_PUBLIC_USE_FIREBASE_EMULATORS": "false" }
     }
   },
   "submit": {
