@@ -1,0 +1,35 @@
+node_modules/
+.DS_Store
+*.log
+*.tsbuildinfo
+
+# env / secrets
+.env
+.env.*
+!.env.example
+functions/.secret.local
+service-account*.json
+
+# real Firebase app configs (the committed demo configs live in apps/mobile/firebase/)
+google-services.json
+GoogleService-Info.plist
+
+# build output
+functions/lib/
+packages/shared/dist/
+coverage/
+
+# firebase
+.firebase/
+.emulator-data/
+firebase-debug.log*
+firestore-debug.log*
+storage-debug.log*
+ui-debug.log*
+database-debug.log*
+pubsub-debug.log*
+
+# source material (kept locally, design/ is the canonical copy)
+craft-screens.zip
+Craft logo.png
+craft/

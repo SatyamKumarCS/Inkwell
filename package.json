@@ -1,0 +1,25 @@
+{
+  "name": "inkwell",
+  "private": true,
+  "packageManager": "pnpm@10.29.2",
+  "engines": {
+    "node": ">=24"
+  },
+  "scripts": {
+    "typecheck": "pnpm -r --if-present typecheck",
+    "lint": "pnpm -r --if-present lint",
+    "test": "pnpm -r --if-present test && pnpm test:rules",
+    "test:rules": "firebase emulators:exec --only firestore,storage --project demo-inkwell \"pnpm --filter @inkwell/rules-tests test:emulator\"",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "emulators": "./scripts/emulators.sh",
+    "mobile": "pnpm --filter @inkwell/mobile start",
+    "android": "pnpm --filter @inkwell/mobile android",
+    "ios": "pnpm --filter @inkwell/mobile ios"
+  },
+  "devDependencies": {
+    "firebase-tools": "^15.37.0",
+    "prettier": "^3.10.1",
+    "typescript": "~6.0.3"
+  }
+}

@@ -1,0 +1,12 @@
+node_modules
+pnpm-lock.yaml
+design
+craft
+**/lib
+**/dist
+**/.expo
+apps/mobile/android
+apps/mobile/ios
+.emulator-data
+SPEC.md
+CLAUDE.md

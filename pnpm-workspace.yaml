@@ -1,0 +1,16 @@
+packages:
+  - apps/*
+  - packages/*
+  - functions
+  - tests/*
+
+# Hoisted layout keeps native modules resolvable by Expo autolinking / Metro.
+nodeLinker: hoisted
+
+onlyBuiltDependencies:
+  - esbuild
+
+overrides:
+  # Keep a single firebase JS SDK copy in the hoisted tree, matching the version @react-native-firebase/app
+  # pins. Two copies split the @firebase/*-compat registries and break @firebase/rules-unit-testing.
+  firebase: 13.1.0
