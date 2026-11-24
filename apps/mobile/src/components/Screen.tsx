@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react';
 import { KeyboardAvoidingView, ScrollView, View } from 'react-native';
 import { SafeAreaView, type Edge } from 'react-native-safe-area-context';
-import { StyleSheet } from 'react-native-unistyles';
+import { StyleSheet, useUnistyles } from 'react-native-unistyles';
 
 interface ScreenProps {
   children: ReactNode;
@@ -18,6 +18,9 @@ export function Screen({
   edges = ['top', 'left', 'right'],
   avoidKeyboard = false,
 }: ScreenProps) {
+  // SafeAreaView is a third-party view, so Unistyles can't restyle it natively on a runtime theme switch;
+  // the background comes from the hook, which re-renders when the theme changes.
+  const { theme } = useUnistyles();
   const content = scroll ? (
     <ScrollView
       contentContainerStyle={[styles.content, styles.grow]}
@@ -30,7 +33,7 @@ export function Screen({
   );
 
   return (
-    <SafeAreaView style={styles.root} edges={edges}>
+    <SafeAreaView style={[styles.root, { backgroundColor: theme.colors.background }]} edges={edges}>
       {avoidKeyboard ? (
         // "padding" on both platforms: the app is edge-to-edge on Android, so the window no longer resizes.
         <KeyboardAvoidingView style={styles.fill} behavior="padding">

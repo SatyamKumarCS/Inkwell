@@ -164,11 +164,11 @@ function Home({
           Starred
         </Text>
         {starred.length === 0 ? (
-          <View style={styles.starHint}>
+          <Card style={styles.starHint}>
             <Text variant="callout" color="textTertiary" align="center" style={styles.italic}>
               Star docs to keep them close
             </Text>
-          </View>
+          </Card>
         ) : (
           <Card flush>
             {starred.map((doc) => (
@@ -236,8 +236,6 @@ const styles = StyleSheet.create((theme) => ({
   },
   starHint: {
     paddingVertical: theme.spacing.xxl,
-    borderRadius: theme.radii.lg,
-    backgroundColor: theme.colors.surfaceMuted,
   },
   italic: {
     fontStyle: 'italic',
