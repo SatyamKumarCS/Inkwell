@@ -26,7 +26,7 @@ if (easProfile === 'preview' || easProfile === 'production') {
 
 // Final app ID (Android package and iOS bundle ID). Case-sensitive: Firebase, EAS credentials and Google OAuth
 // clients must use exactly this spelling. The demo configs in ./firebase/ must use the same ID.
-const APP_ID = 'com.SatyamKumar.inkwell';
+const APP_ID = 'com.satyamkumar.inkwell';
 
 // "Inkwell" is the working name — rename here (and in bundle IDs) once the final name is chosen.
 const config: ExpoConfig = {
