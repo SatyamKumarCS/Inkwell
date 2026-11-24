@@ -24,9 +24,9 @@ if (easProfile === 'preview' || easProfile === 'production') {
   }
 }
 
-// Replace with the final reverse-DNS ID before registering the app with Firebase (one value, both platforms).
-// The demo configs in ./firebase/ must use the same ID.
-const APP_ID = 'com.inkwell.app';
+// Final app ID (Android package and iOS bundle ID). Case-sensitive: Firebase, EAS credentials and Google OAuth
+// clients must use exactly this spelling. The demo configs in ./firebase/ must use the same ID.
+const APP_ID = 'com.SatyamKumar.inkwell';
 
 // "Inkwell" is the working name — rename here (and in bundle IDs) once the final name is chosen.
 const config: ExpoConfig = {
