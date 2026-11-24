@@ -26,11 +26,24 @@ describe('clientIp', () => {
   it('uses the last X-Forwarded-For entry (the one Google appended)', () => {
     expect(clientIp({ 'x-forwarded-for': '6.6.6.6, 203.0.113.7' })).toBe('203.0.113.7');
     expect(clientIp({ 'x-forwarded-for': ['6.6.6.6', '203.0.113.7'] })).toBe('203.0.113.7');
+    expect(clientIp({ 'x-forwarded-for': '2001:db8::1' })).toBe('2001:db8::1');
   });
 
-  it('falls back to the socket address', () => {
-    expect(clientIp({}, '127.0.0.1')).toBe('127.0.0.1');
-    expect(clientIp({})).toBeNull();
+  it.each([
+    ['no header', {}],
+    ['an empty header', { 'x-forwarded-for': ' , ' }],
+    ['garbage', { 'x-forwarded-for': 'not-an-ip' }],
+    ['loopback', { 'x-forwarded-for': '127.0.0.1' }],
+    ['a private address', { 'x-forwarded-for': '203.0.113.7, 10.1.2.3' }],
+    ['a LAN address', { 'x-forwarded-for': '192.168.1.20' }],
+    ['link-local', { 'x-forwarded-for': '169.254.1.1' }],
+    ['carrier-grade NAT', { 'x-forwarded-for': '100.64.0.1' }],
+    ['IPv6 loopback', { 'x-forwarded-for': '::1' }],
+    ['IPv6 unique-local', { 'x-forwarded-for': 'fd12:3456::1' }],
+    ['IPv6 link-local', { 'x-forwarded-for': 'fe80::1' }],
+    ['IPv4-mapped private', { 'x-forwarded-for': '::ffff:10.0.0.1' }],
+  ])('returns null (not one shared bucket) for %s', (_label, headers) => {
+    expect(clientIp(headers)).toBeNull();
   });
 });
 

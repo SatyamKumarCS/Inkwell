@@ -26,14 +26,42 @@ export function sha256(value: string): string {
 /** Document ID for an (already normalised) email, so addresses never appear in document paths. */
 export const emailKey = (email: string) => sha256(email);
 
+function ipv4IsPublic(ip: string): boolean {
+  const [a = 0, b = 0] = ip.split('.').map(Number);
+  return !(
+    a === 0 ||
+    a === 10 ||
+    a === 127 ||
+    (a === 100 && b >= 64 && b <= 127) || // carrier-grade NAT
+    (a === 169 && b === 254) ||
+    (a === 172 && b >= 16 && b <= 31) ||
+    (a === 192 && b === 168) ||
+    a >= 224 // multicast and reserved
+  );
+}
+
+/** Loopback, private, link-local and similar addresses never identify an internet client. */
+export function isPublicIp(ip: string): boolean {
+  if (isIPv4(ip)) return ipv4IsPublic(ip);
+  if (!isIPv6(ip)) return false;
+  const lower = ip.toLowerCase();
+  const mapped = lower.startsWith('::ffff:') ? lower.slice(7) : null;
+  if (mapped && isIPv4(mapped)) return ipv4IsPublic(mapped);
+  return !(
+    lower === '::' ||
+    lower === '::1' ||
+    /^f[cd]/.test(lower) || // fc00::/7 unique local
+    /^fe[89ab]/.test(lower) // fe80::/10 link-local
+  );
+}
+
 /**
- * The caller's IP from a Cloud Run request. Google's front end appends the connecting address as the
- * last `X-Forwarded-For` entry; earlier entries are client-supplied and can be spoofed.
+ * The caller's public IP from a Cloud Run request, or null when it can't be determined reliably. Google's
+ * front end appends the connecting address as the last `X-Forwarded-For` entry; earlier entries are
+ * client-supplied and can be spoofed. The socket address is never used: behind Google's proxies it is the
+ * proxy, which would put every user in one rate-limit bucket.
  */
-export function clientIp(
-  headers: Record<string, string | string[] | undefined>,
-  fallback?: string,
-): string | null {
+export function clientIp(headers: Record<string, string | string[] | undefined>): string | null {
   const header = headers['x-forwarded-for'];
   const value = Array.isArray(header) ? header.join(',') : header;
   const last = value
@@ -41,7 +69,7 @@ export function clientIp(
     .map((part) => part.trim())
     .filter(Boolean)
     .at(-1);
-  return last || fallback || null;
+  return last && isPublicIp(last) ? last : null;
 }
 
 /**

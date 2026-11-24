@@ -10,6 +10,8 @@ const httpsCode: Record<AuthErrorReason, FunctionsErrorCode> = {
   'daily-limit': 'resource-exhausted',
   // Not "unavailable": the app treats that code as "you're offline".
   'send-failed': 'internal',
+  'invalid-google-token': 'unauthenticated',
+  'email-not-verified': 'permission-denied',
 };
 
 /** An HttpsError whose `details.reason` tells the app which message to show. */

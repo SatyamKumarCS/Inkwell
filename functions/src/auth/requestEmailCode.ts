@@ -7,15 +7,14 @@ import {
   rateLimitSchema,
   requestEmailCodeRequestSchema,
   timestampToMillis,
-  type RateWindow,
   type RequestEmailCodeResponse,
 } from '@inkwell/shared';
 
-import { emailKey, generateCode, hashCode, sha256 } from './codes';
+import { emailKey, generateCode, hashCode } from './codes';
 import { authError } from './errors';
+import { HOUR_MS, ipLimitDoc, ipLimitRef, toWindow, warnUnknownIp } from './ipLimit';
 import { checkWindow, type Window } from './rateWindow';
 
-const HOUR_MS = 60 * 60 * 1000;
 const DAY_MS = 24 * HOUR_MS;
 
 export interface EmailCodeLimits {
@@ -30,7 +29,10 @@ export interface RequestEmailCodeDeps {
   db: Firestore;
   pepper: string;
   limits: EmailCodeLimits;
-  /** Rate-limit bucket for the caller's IP (see `ipBucket`), or null when unknown. */
+  /**
+   * Rate-limit bucket for the caller's IP (see `ipBucket`), or null when it can't be determined reliably:
+   * then only the per-email limits and the global daily cap apply.
+   */
   ipKey: string | null;
   sendCode: (email: string, code: string) => Promise<void>;
   now?: () => Date;
@@ -39,9 +41,6 @@ export interface RequestEmailCodeDeps {
 
 type Outcome =
   { ok: true } | { ok: false; reason: 'rate-limited' | 'daily-limit'; retryAfterSeconds: number };
-
-const toWindow = (window: RateWindow | undefined): Window | undefined =>
-  window && { windowStartMs: timestampToMillis(window.windowStart), count: window.count };
 
 const fromWindow = (window: Window) => ({
   windowStart: Timestamp.fromMillis(window.windowStartMs),
@@ -69,10 +68,8 @@ export async function requestEmailCode(
   const dayStartMs = Date.parse(`${day}T00:00:00.000Z`);
   const codeRef = db.collection(Collections.emailCodes).doc(emailKey(email));
   const dayRef = db.collection(Collections.rateLimits).doc(`daily-${day}`);
-  const ipRef = deps.ipKey
-    ? db.collection(Collections.rateLimits).doc(`ip-${sha256(deps.ipKey)}`)
-    : null;
-  if (!ipRef) logger.warn('requestEmailCode: caller IP unknown; per-IP limit skipped');
+  const ipRef = deps.ipKey ? ipLimitRef(db, 'email', deps.ipKey) : null;
+  if (!ipRef) warnUnknownIp('requestEmailCode');
 
   const outcome = await db.runTransaction<Outcome>(async (tx) => {
     const [codeSnap, daySnap, ipSnap] = await Promise.all([
@@ -135,12 +132,7 @@ export async function requestEmailCode(
         Math.max(expiresAtMs, emailWindow.next.windowStartMs + HOUR_MS),
       ),
     });
-    if (ipRef && ipWindow) {
-      tx.set(ipRef, {
-        ...fromWindow(ipWindow.next),
-        purgeAt: Timestamp.fromMillis(ipWindow.next.windowStartMs + HOUR_MS),
-      });
-    }
+    if (ipRef && ipWindow) tx.set(ipRef, ipLimitDoc(ipWindow.next));
     tx.set(dayRef, {
       windowStart: Timestamp.fromMillis(dayStartMs),
       count: sentToday + 1,

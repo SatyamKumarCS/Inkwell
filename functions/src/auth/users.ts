@@ -27,3 +27,46 @@ export async function findOrCreateUserByEmail(auth: Auth, email: string): Promis
     throw error;
   }
 }
+
+export interface ProviderIdentity {
+  /** Firebase provider id, e.g. `google.com` (later `apple.com`). */
+  providerId: string;
+  /** The provider's stable user id (`sub`). */
+  providerUid: string;
+  /** Verified email, already normalised. */
+  email: string;
+  displayName?: string;
+  photoURL?: string;
+}
+
+/**
+ * Resolves a verified identity from a sign-in provider to exactly one account:
+ * 1. an account already linked to this provider identity;
+ * 2. otherwise the account with the same email (e.g. created with an email code), which gets the
+ *    provider linked;
+ * 3. otherwise a new account, with the provider linked.
+ */
+export async function findOrLinkProviderUser(
+  auth: Auth,
+  identity: ProviderIdentity,
+): Promise<UserRecord> {
+  try {
+    return await auth.getUserByProviderUid(identity.providerId, identity.providerUid);
+  } catch (error) {
+    if (!hasCode(error, 'auth/user-not-found')) throw error;
+  }
+
+  const user = await findOrCreateUserByEmail(auth, identity.email);
+  if (user.providerData.some((provider) => provider.providerId === identity.providerId)) {
+    return user;
+  }
+  return auth.updateUser(user.uid, {
+    providerToLink: {
+      providerId: identity.providerId,
+      uid: identity.providerUid,
+      email: identity.email,
+      displayName: identity.displayName,
+      photoURL: identity.photoURL,
+    },
+  });
+}

@@ -1,7 +1,12 @@
 import './options'; // must stay first: sets the region before any function is defined
 import { onRequest } from 'firebase-functions/v2/https';
 
-import { completeProfileFn, requestEmailCodeFn, verifyEmailCodeFn } from './auth/callables';
+import {
+  completeProfileFn,
+  requestEmailCodeFn,
+  signInWithGoogleFn,
+  verifyEmailCodeFn,
+} from './auth/callables';
 
 // Later phases add notifications (3), AI (4) and publishing (5).
 
@@ -14,3 +19,4 @@ export const healthcheck = onRequest((_req, res) => {
 export const requestEmailCode = requestEmailCodeFn;
 export const verifyEmailCode = verifyEmailCodeFn;
 export const completeProfile = completeProfileFn;
+export const signInWithGoogle = signInWithGoogleFn;

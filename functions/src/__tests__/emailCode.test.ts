@@ -1,5 +1,6 @@
 import { getAuth } from 'firebase-admin/auth';
 import { getFirestore } from 'firebase-admin/firestore';
+import { logger } from 'firebase-functions/logger';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { Collections, EmailCodePolicy } from '@inkwell/shared';
 
@@ -108,6 +109,24 @@ describe('requestEmailCode', () => {
       'daily-limit',
     );
     expect(sent).toHaveLength(2);
+  });
+
+  it('without a reliable IP: skips the per-IP limit (no shared bucket), keeps the daily cap, warns', async () => {
+    const warn = vi.spyOn(logger, 'warn').mockImplementation(() => undefined);
+    const limits = { ttlSeconds: 600, ipPerHour: 1, dailyCap: 3 };
+    for (const name of ['a', 'b', 'c']) {
+      await sendCode(`${name}@example.com`, { limits, ipKey: null });
+    }
+
+    expect(sent).toHaveLength(3); // ipPerHour: 1 did not apply
+    const ipDocs = await db.collection(Collections.rateLimits).get();
+    expect(ipDocs.docs.map((d) => d.id).filter((id) => id.startsWith('ip-'))).toEqual([]);
+    await expectAuthError(
+      requestEmailCode({ email: 'd@example.com' }, deps({ limits, ipKey: null })),
+      'daily-limit',
+    );
+    expect(warn).toHaveBeenCalledWith(expect.stringContaining('per-IP limit'));
+    warn.mockRestore();
   });
 
   it('lets the user retry straight away when the email fails to send', async () => {

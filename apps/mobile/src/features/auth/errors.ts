@@ -46,6 +46,10 @@ export function authFailureMessage(failure: AuthFailure): string {
       return "We can't send sign-in codes right now. Please try again later.";
     case 'send-failed':
       return "We couldn't send the email. Please try again.";
+    case 'invalid-google-token':
+      return "Google sign-in didn't work. Please try again.";
+    case 'email-not-verified':
+      return 'Your Google account email is not verified. Verify it with Google, or sign in with an email code.';
     case 'offline':
       return "You're offline. Connect to the internet and try again.";
     case 'unknown':

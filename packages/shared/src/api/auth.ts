@@ -36,6 +36,17 @@ export type VerifyEmailCodeRequest = z.input<typeof verifyEmailCodeRequestSchema
 export const verifyEmailCodeResponseSchema = z.object({ token: z.string().min(1) });
 export type VerifyEmailCodeResponse = z.infer<typeof verifyEmailCodeResponseSchema>;
 
+export const signInWithGoogleRequestSchema = z.object({ idToken: z.string().min(1).max(8192) });
+export type SignInWithGoogleRequest = z.input<typeof signInWithGoogleRequestSchema>;
+
+export const signInWithGoogleResponseSchema = z.object({
+  token: z.string().min(1),
+  /** From the Google profile, to prefill the name screen for new accounts. */
+  firstName: z.string().optional(),
+  lastName: z.string().optional(),
+});
+export type SignInWithGoogleResponse = z.infer<typeof signInWithGoogleResponseSchema>;
+
 export const completeProfileRequestSchema = z.object({
   firstName: z.string().trim().min(1).max(NAME_MAX_LENGTH),
   lastName: z.string().trim().max(NAME_MAX_LENGTH).default(''),
@@ -54,6 +65,8 @@ export const authErrorReasonSchema = z.enum([
   'rate-limited',
   'daily-limit',
   'send-failed',
+  'invalid-google-token',
+  'email-not-verified',
 ]);
 export type AuthErrorReason = z.infer<typeof authErrorReasonSchema>;
 
@@ -69,6 +82,7 @@ export const Callables = {
   requestEmailCode: 'requestEmailCode',
   verifyEmailCode: 'verifyEmailCode',
   completeProfile: 'completeProfile',
+  signInWithGoogle: 'signInWithGoogle',
 } as const;
 
 /** Cloud Functions region (Mumbai — most users are in India). Firestore lives in the same region. */
