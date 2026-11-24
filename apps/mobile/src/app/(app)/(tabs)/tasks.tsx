@@ -8,7 +8,7 @@ import {
   type LucideIcon,
 } from 'lucide-react-native';
 import { useMemo, useState, type ReactNode } from 'react';
-import { ScrollView, View } from 'react-native';
+import { Alert, ScrollView, View } from 'react-native';
 import { StyleSheet } from 'react-native-unistyles';
 
 import { EmptyState, OfflineBanner, Screen, Text } from '@/components';
@@ -18,6 +18,8 @@ import { toggleTaskDone } from '@/features/tasks/actions';
 import {
   createTask,
   createTaskList,
+  deleteTaskList,
+  renameTaskList,
   useTaskLists,
   useTasks,
   type TaskItem,
@@ -25,6 +27,7 @@ import {
 import { FilterChips } from '@/features/tasks/components/FilterChips';
 import { NewListInput } from '@/features/tasks/components/NewListInput';
 import { NewTaskInput } from '@/features/tasks/components/NewTaskInput';
+import { RenameListInput } from '@/features/tasks/components/RenameListInput';
 import {
   CompletedSection,
   GroupHeader,
@@ -267,6 +270,7 @@ function AllTasksView({
   const { open, done } = splitDone(tasks);
   const groups = groupByList(open, lists);
 
+  const [renaming, setRenaming] = useState<string | null>(null);
   const toggle = (key: string) =>
     setCollapsed((prev) => {
       const next = new Set(prev);
@@ -289,12 +293,40 @@ function AllTasksView({
         const isCollapsed = collapsed.has(key);
         return (
           <View key={key}>
-            <GroupHeader
-              title={group.listId ? listLabel({ name: group.name, icon: group.icon ?? '' }) : 'Inbox'}
-              count={group.tasks.length}
-              collapsed={isCollapsed}
-              onToggle={() => toggle(key)}
-            />
+            {group.listId && renaming === group.listId ? (
+              <RenameListInput
+                initialName={group.name}
+                onCancel={() => setRenaming(null)}
+                onSave={(name) => {
+                  setRenaming(null);
+                  if (group.listId) void renameTaskList(group.listId, name).catch(warnFailed);
+                }}
+              />
+            ) : (
+              <GroupHeader
+                title={group.listId ? listLabel({ name: group.name, icon: group.icon ?? '' }) : 'Inbox'}
+                count={group.tasks.length}
+                collapsed={isCollapsed}
+                onToggle={() => toggle(key)}
+                onMore={
+                  group.listId && canWrite
+                    ? () => {
+                        const listId = group.listId;
+                        if (!listId) return;
+                        Alert.alert(group.name, undefined, [
+                          { text: 'Rename', onPress: () => setRenaming(listId) },
+                          {
+                            text: 'Delete list',
+                            style: 'destructive',
+                            onPress: () => confirmDeleteList(listId, group.name, group.tasks.length),
+                          },
+                          { text: 'Cancel', style: 'cancel' },
+                        ]);
+                      }
+                    : undefined
+                }
+              />
+            )}
             {isCollapsed ? null : (
               <>
                 {group.tasks.map((t) => row(t, { date: true }))}
@@ -315,6 +347,26 @@ function AllTasksView({
         {done.map((t) => row(t, { list: true, date: true }))}
       </CompletedSection>
     </View>
+  );
+}
+
+const warnFailed = (error: unknown) => {
+  console.warn('[tasks] list change failed', error);
+  Alert.alert("Couldn't update the list", 'Check your connection and try again.');
+};
+
+function confirmDeleteList(listId: string, name: string, openTasks: number) {
+  Alert.alert(
+    `Delete "${name}"?`,
+    openTasks > 0 ? 'Its tasks move to the Inbox.' : 'The list is empty.',
+    [
+      { text: 'Cancel', style: 'cancel' },
+      {
+        text: 'Delete',
+        style: 'destructive',
+        onPress: () => void deleteTaskList(listId).catch(warnFailed),
+      },
+    ],
   );
 }
 

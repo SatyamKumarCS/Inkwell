@@ -11,6 +11,7 @@ import {
 } from '@inkwell/shared';
 
 import {
+  commitBatch,
   deleteDocument,
   deleteField,
   listenQuery,
@@ -177,3 +178,24 @@ export function createTaskList(uid: string, spaceId: string, name: string, icon 
 
 // Date helpers live in ./dates (pure, unit-tested); re-exported so existing imports keep working.
 export { addDays, isoDate } from './dates';
+
+/** Renames a task list (one write). */
+export function renameTaskList(listId: string, name: string): Promise<void> {
+  return updateDocument(listPath(listId), { name, updatedAt: serverTimestamp() });
+}
+
+/** Deletes a list and moves its tasks to the Inbox, in one commit. */
+export function deleteTaskList(listId: string): Promise<void> {
+  const moved = useTasksStore.getState().tasks.filter((t) => t.listId === listId);
+  return commitBatch(
+    [
+      ...moved.map((t) => ({
+        kind: 'update' as const,
+        path: taskPath(t.id),
+        data: { listId: deleteField(), updatedAt: serverTimestamp() },
+      })),
+      { kind: 'delete', path: listPath(listId) },
+    ],
+    `delete list ${listId}`,
+  );
+}

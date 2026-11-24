@@ -1,4 +1,4 @@
-import { ChevronDown, ChevronRight } from 'lucide-react-native';
+import { ChevronDown, ChevronRight, Ellipsis } from 'lucide-react-native';
 import { useState, type ReactNode } from 'react';
 import { Pressable, View } from 'react-native';
 import { StyleSheet, useUnistyles } from 'react-native-unistyles';
@@ -12,10 +12,12 @@ export interface GroupHeaderProps {
   count?: number;
   collapsed?: boolean;
   onToggle?: () => void;
+  /** Shows a "…" button (e.g. list options). */
+  onMore?: () => void;
 }
 
 /** Group title ("Inbox", "📋 Work", "26 Nov · Tomorrow"), optionally collapsible. */
-export function GroupHeader({ title, count, collapsed = false, onToggle }: GroupHeaderProps) {
+export function GroupHeader({ title, count, collapsed = false, onToggle, onMore }: GroupHeaderProps) {
   const { theme } = useUnistyles();
   const Chevron = collapsed ? ChevronRight : ChevronDown;
 
@@ -38,6 +40,17 @@ export function GroupHeader({ title, count, collapsed = false, onToggle }: Group
         <Text variant="subhead" color="textTertiary">
           {count}
         </Text>
+      ) : null}
+      {onMore ? (
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel={`${title} options`}
+          hitSlop={8}
+          onPress={onMore}
+          style={styles.more}
+        >
+          <Ellipsis size={theme.iconSize.md} color={theme.colors.textTertiary} />
+        </Pressable>
       ) : null}
       {onToggle ? <Chevron size={theme.iconSize.md} color={theme.colors.textTertiary} /> : null}
     </Pressable>
@@ -89,6 +102,9 @@ export function TaskSkeleton({ rows = 5 }: { rows?: number }) {
 }
 
 const styles = StyleSheet.create((theme) => ({
+  more: {
+    paddingHorizontal: theme.spacing.xs,
+  },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
