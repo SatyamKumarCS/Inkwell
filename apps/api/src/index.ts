@@ -10,7 +10,7 @@ import { sendCodeEmail } from './auth/mailer';
 import { verifyFirebaseIdToken, verifyGoogleIdTokenSignature } from './auth/tokens';
 import { loadConfig, type Config } from './config';
 import type { AppEnv } from './env';
-import { getAccessToken } from './google/accessToken';
+import { getAccessToken, refreshAccessToken } from './google/accessToken';
 import { Firestore } from './google/firestore';
 import { IdentityToolkit } from './google/identityToolkit';
 import { FIREBASE_ID_TOKEN_JWKS, GOOGLE_ID_TOKEN_JWKS, jwksKeySource } from './google/jwks';
@@ -106,6 +106,17 @@ export async function handleRequest(
   }
 }
 
+/** Must exceed the cron interval in wrangler.jsonc (30 min), so a stored token never lapses between runs. */
+const TOKEN_MIN_VALIDITY_MS = 35 * 60 * 1000;
+
+/** Keeps a Google access token in the AuthGuard, so requests never mint one (see `refreshAccessToken`). */
+export async function handleScheduled(env: AppEnv, guard: Guard): Promise<void> {
+  const config = loadConfig(env);
+  if (config.emulators) return; // the emulators take an admin token instead
+  await refreshAccessToken(config.serviceAccount, guard, TOKEN_MIN_VALIDITY_MS);
+}
+
 export default {
   fetch: (request, env) => handleRequest(request, env, guardFor(env)),
+  scheduled: (_controller, env, ctx) => ctx.waitUntil(handleScheduled(env, guardFor(env))),
 } satisfies ExportedHandler<AppEnv>;

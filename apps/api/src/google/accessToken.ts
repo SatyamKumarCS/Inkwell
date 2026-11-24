@@ -27,7 +27,7 @@ export async function getAccessToken(
   store: TokenStore,
   nowMs = Date.now(),
 ): Promise<string> {
-  const key = `oauth:${sa.client_email}:${sa.private_key_id}`;
+  const key = tokenKey(sa);
   const cached = memory.get(key);
   if (cached && cached.expiresAtMs > nowMs) return cached.token;
 
@@ -36,7 +36,29 @@ export async function getAccessToken(
     memory.set(key, { token: shared, expiresAtMs: nowMs + MARGIN_MS });
     return shared;
   }
+  return mintAccessToken(sa, store, nowMs);
+}
 
+/**
+ * Called by the scheduled handler: mints a new token into the shared store when the stored one expires
+ * within `minValidityMs`, so user requests find a cached token instead of paying for the RS256 signature
+ * (~1.3 ms of CPU with the key import, measured). Returns whether it minted.
+ */
+export async function refreshAccessToken(
+  sa: ServiceAccount,
+  store: TokenStore,
+  minValidityMs: number,
+  nowMs = Date.now(),
+): Promise<boolean> {
+  if (await store.getToken(tokenKey(sa), nowMs + minValidityMs)) return false;
+  await mintAccessToken(sa, store, nowMs);
+  return true;
+}
+
+const tokenKey = (sa: ServiceAccount) => `oauth:${sa.client_email}:${sa.private_key_id}`;
+
+async function mintAccessToken(sa: ServiceAccount, store: TokenStore, nowMs: number) {
+  const key = tokenKey(sa);
   const iat = Math.floor(nowMs / 1000);
   const assertion = await signJwtRs256(
     { iss: sa.client_email, scope: SCOPES, aud: sa.token_uri, iat, exp: iat + 3600 },

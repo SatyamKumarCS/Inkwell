@@ -145,6 +145,24 @@ describe('loadConfig guard', () => {
     expect(() => loadConfig({ ...testEnv, FIREBASE_AUTH_EMULATOR_HOST: '' })).toThrow(/both/);
   });
 
+  it('reports missing secrets and invalid limits', () => {
+    expect(() =>
+      loadConfig({ ...testEnv, OTP_PEPPER: '', EMAIL_CODE_TTL_SECONDS: 'soon' as never }),
+    ).toThrow(
+      'Invalid API configuration: EMAIL_CODE_TTL_SECONDS must be a positive integer; ' +
+        'OTP_PEPPER secret is not set',
+    );
+    expect(() =>
+      loadConfig({ ...testEnv, GOOGLE_SERVICE_ACCOUNT: '{"client_email":"x"}' }),
+    ).toThrow('GOOGLE_SERVICE_ACCOUNT is not a service-account key.');
+  });
+
+  it('accepts numeric strings for limits and defaults the token URI', () => {
+    const parsed = loadConfig({ ...testEnv, AUTH_IP_HOURLY_LIMIT: '7' as never });
+    expect(parsed.limits.ipPerHour).toBe(7);
+    expect(parsed.serviceAccount.token_uri).toBe('https://oauth2.googleapis.com/token');
+  });
+
   it('accepts a real project without emulators', () => {
     const prod = loadConfig({
       ...testEnv,

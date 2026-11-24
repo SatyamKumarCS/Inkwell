@@ -10,6 +10,9 @@
   "observability": { "enabled": true },
   // No per-version preview URLs: each would be another public endpoint with the production secrets.
   "preview_urls": false,
+  // Refreshes the cached Google access token (src/index.ts handleScheduled), keeping its RS256 signature
+  // off the request path.
+  "triggers": { "crons": ["*/30 * * * *"] },
   "durable_objects": {
     "bindings": [{ "name": "AUTH_GUARD", "class_name": "AuthGuard" }],
   },

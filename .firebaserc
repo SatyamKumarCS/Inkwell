@@ -1,5 +1,6 @@
 {
   "projects": {
-    "default": "demo-inkwell"
+    "default": "demo-inkwell",
+    "prod": "inkwell-cccfc"
   }
 }
