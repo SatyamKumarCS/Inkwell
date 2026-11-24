@@ -70,8 +70,16 @@ const config: ExpoConfig = {
     ],
     '@react-native-firebase/app',
     '@react-native-firebase/auth',
-    // React Native Firebase v27 resolves the Firebase Apple SDK via SPM, which requires dynamic frameworks.
-    ['expo-build-properties', { ios: { useFrameworks: 'dynamic' } }],
+    [
+      'expo-build-properties',
+      {
+        // React Native Firebase v27 resolves the Firebase Apple SDK via SPM, which requires dynamic frameworks.
+        ios: { useFrameworks: 'dynamic' },
+        // Firebase Android BoM 35 (firebase-auth 25) ships Kotlin 2.4 metadata; RN 0.88 defaults to Kotlin 2.2,
+        // which can't read it. RN Firebase v27 requires the Kotlin Gradle plugin >= 2.4.0.
+        android: { kotlinVersion: '2.4.0' },
+      },
+    ],
   ],
   extra: {
     eas: { projectId: '645ea6f2-f583-4a4f-acb3-a7f6660f03fd' },
