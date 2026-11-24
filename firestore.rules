@@ -1,8 +1,9 @@
 rules_version = '2';
 
-// Phase 1: users read/update their own profile, members read their spaces. Profiles and default spaces are
-// created by the completeProfile function; emailCodes and rateLimits are server-only. Everything else stays
-// locked until its phase opens it, together with rules tests in tests/rules.
+// Users read/update their own profile, members read their spaces. Profiles and default spaces are created by
+// the completeProfile function; emailCodes and rateLimits are server-only. Docs, blocks, tasks, task lists
+// and stars are owner-only for now. Everything else stays locked until its phase opens it, together with
+// rules tests in tests/rules.
 service cloud.firestore {
   match /databases/{database}/documents {
     function signedIn() {
@@ -60,6 +61,98 @@ service cloud.firestore {
       allow read: if signedIn() && request.auth.uid in resource.data.memberIds;
       // Space editing and membership arrive in Phases 2 and 5.
       allow write: if false;
+    }
+
+    // --- Docs and tasks (demo scope: owner-only; sharing with space members arrives in Phase 5) ---------
+    // Reads filter by ownerId, so list queries can be proven safe without a get() per document.
+
+    function memberOf(spaceId) {
+      return spaceId is string
+        && request.auth.uid in get(/databases/$(database)/documents/spaces/$(spaceId)).data.memberIds;
+    }
+
+    function owns(data) {
+      return signedIn() && data.ownerId == request.auth.uid;
+    }
+
+    // Creates: owned by the caller, in a space they belong to, with server timestamps.
+    function validNew(data) {
+      return owns(data)
+        && memberOf(data.spaceId)
+        && data.createdAt == request.time
+        && data.updatedAt == request.time;
+    }
+
+    // Updates never move a record to another owner or space.
+    function validChange() {
+      return owns(resource.data)
+        && request.resource.data.ownerId == resource.data.ownerId
+        && request.resource.data.spaceId == resource.data.spaceId
+        && request.resource.data.createdAt == resource.data.createdAt
+        && request.resource.data.updatedAt == request.time;
+    }
+
+    function validDocFields(data) {
+      return data.title is string && data.title.size() <= 500
+        && (data.icon == null || data.icon is string)
+        && data.deleted is bool
+        && data.isDailyNote is bool;
+    }
+
+    match /docs/{docId} {
+      allow read: if owns(resource.data);
+      allow create: if validNew(request.resource.data) && validDocFields(request.resource.data);
+      allow update: if validChange() && validDocFields(request.resource.data);
+      allow delete: if owns(resource.data);
+
+      function ownsParent() {
+        return signedIn()
+          && get(/databases/$(database)/documents/docs/$(docId)).data.ownerId == request.auth.uid;
+      }
+
+      match /blocks/{blockId} {
+        allow read, delete: if ownsParent();
+        allow create, update: if ownsParent()
+          && request.resource.data.type in ['paragraph', 'heading', 'todo', 'bullet', 'numbered',
+            'quote', 'code', 'divider']
+          && request.resource.data.content is map
+          && request.resource.data.order is string && request.resource.data.order.size() > 0
+          && request.resource.data.updatedBy == request.auth.uid;
+      }
+    }
+
+    function validTaskFields(data) {
+      return data.title is string && data.title.size() <= 1000
+        && data.done is bool
+        && data.order is string && data.order.size() > 0
+        && (!('scheduledDate' in data) || data.scheduledDate is string)
+        && (!('listId' in data) || data.listId is string);
+    }
+
+    match /tasks/{taskId} {
+      allow read: if owns(resource.data);
+      allow create: if validNew(request.resource.data) && validTaskFields(request.resource.data);
+      allow update: if validChange() && validTaskFields(request.resource.data);
+      allow delete: if owns(resource.data);
+    }
+
+    match /taskLists/{listId} {
+      allow read: if owns(resource.data);
+      allow create: if validNew(request.resource.data)
+        && request.resource.data.name is string && request.resource.data.name.size() > 0
+        && request.resource.data.name.size() <= 100;
+      allow update: if validChange()
+        && request.resource.data.name is string && request.resource.data.name.size() > 0
+        && request.resource.data.name.size() <= 100;
+      allow delete: if owns(resource.data);
+    }
+
+    // Stars: users/{uid}/stars/{docId} = { starredAt }. Private to the user.
+    match /users/{uid}/stars/{docId} {
+      allow read, delete: if isUser(uid);
+      allow create: if isUser(uid)
+        && request.resource.data.keys().hasOnly(['starredAt'])
+        && request.resource.data.starredAt == request.time;
     }
 
     // Default deny (includes emailCodes and rateLimits, which only Cloud Functions touch).

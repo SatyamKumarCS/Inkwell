@@ -3,6 +3,7 @@ import { auditFieldsSchema, isoDateSchema, timestampSchema } from '../timestamp'
 
 export const taskListSchema = auditFieldsSchema.extend({
   spaceId: z.string(),
+  ownerId: z.string(),
   name: z.string().min(1).max(100),
   icon: z.string(),
   order: z.string().min(1),
@@ -11,6 +12,7 @@ export type TaskList = z.infer<typeof taskListSchema>;
 
 export const taskSchema = auditFieldsSchema.extend({
   spaceId: z.string(),
+  ownerId: z.string(),
   /** Missing listId means the task is in the Inbox. */
   listId: z.string().optional(),
   title: z.string().max(1000),

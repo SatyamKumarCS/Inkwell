@@ -3,6 +3,7 @@ import { renderRouter, screen, testRouter } from 'expo-router/testing-library';
 import { Text } from 'react-native';
 import type { User } from '@inkwell/shared';
 
+import * as TabsLayout from '@/app/(app)/(tabs)/_layout';
 import * as AppLayout from '@/app/(app)/_layout';
 import * as AuthLayout from '@/app/(auth)/_layout';
 import * as OnboardingLayout from '@/app/(onboarding)/_layout';
@@ -28,7 +29,14 @@ const routes = {
   '(onboarding)/tour': stub('tour'),
   '(onboarding)/notifications': stub('notifications'),
   '(app)/_layout': AppLayout,
-  '(app)/index': stub('home'),
+  '(app)/(tabs)/_layout': TabsLayout,
+  '(app)/(tabs)/index': stub('home'),
+  '(app)/(tabs)/tasks': stub('tasks'),
+  '(app)/(tabs)/calendar': stub('calendar'),
+  '(app)/doc/[id]': stub('doc'),
+  '(app)/docs': stub('docs'),
+  '(app)/task/[id]': stub('task'),
+  '(app)/settings': stub('settings'),
   '(app)/dev': stub('dev'),
 };
 
