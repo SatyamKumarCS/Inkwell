@@ -7,7 +7,7 @@
   },
   "scripts": {
     "typecheck": "pnpm -r --if-present typecheck",
-    "lint": "pnpm -r --if-present lint",
+    "lint": "pnpm -r --if-present lint && ./scripts/check-secrets.sh",
     "test": "pnpm -r --if-present test && pnpm test:emulators",
     "test:emulators": "firebase emulators:exec --config firebase.test.json --only auth,firestore,storage --project demo-inkwell \"pnpm --filter @inkwell/rules-tests test:emulator && pnpm --filter @inkwell/functions test:emulator && pnpm --filter @inkwell/api test:emulator\"",
     "test:rules": "firebase emulators:exec --config firebase.test.json --only firestore,storage --project demo-inkwell \"pnpm --filter @inkwell/rules-tests test:emulator\"",

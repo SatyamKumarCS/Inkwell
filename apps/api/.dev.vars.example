@@ -1,0 +1,9 @@
+# Copy of what scripts/ensure-dev-vars.mjs writes to .dev.vars (git-ignored) on the first `pnpm dev:api`.
+# Local development against the Firebase emulators only. Production secrets: `wrangler secret put <NAME>`.
+FIREBASE_PROJECT_ID=demo-inkwell
+FIRESTORE_EMULATOR_HOST=127.0.0.1:8080
+FIREBASE_AUTH_EMULATOR_HOST=127.0.0.1:9099
+OTP_PEPPER=dev-only-pepper-not-for-production
+RESEND_API_KEY=unused-in-dev
+# A service-account JSON with a throwaway key (generated locally):
+GOOGLE_SERVICE_ACCOUNT='{"type":"service_account","private_key":"<generated>","client_email":"inkwell-api@demo-inkwell.iam.gserviceaccount.com","private_key_id":"dev-only"}'
