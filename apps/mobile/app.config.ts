@@ -32,6 +32,8 @@ const APP_ID = 'com.satyamkumar.inkwell';
 const config: ExpoConfig = {
   name: 'Inkwell',
   slug: 'inkwell',
+  // EAS project @saty_satyam1122/inkwell (not a secret). Set here because EAS can't write to app.config.ts.
+  owner: 'saty_satyam1122',
   version: '0.1.0',
   orientation: 'portrait',
   icon: './assets/images/icon.png',
@@ -71,6 +73,9 @@ const config: ExpoConfig = {
     // React Native Firebase v27 resolves the Firebase Apple SDK via SPM, which requires dynamic frameworks.
     ['expo-build-properties', { ios: { useFrameworks: 'dynamic' } }],
   ],
+  extra: {
+    eas: { projectId: '645ea6f2-f583-4a4f-acb3-a7f6660f03fd' },
+  },
   experiments: {
     typedRoutes: true,
     reactCompiler: true,
